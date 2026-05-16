@@ -1,5 +1,6 @@
 ﻿using AnaliseRedacao.Domain.Services.OCR;
 using AnaliseRedacao.Infrastructure.Services.OCR;
+using AnaliseRedacao.Infrastructure.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,12 +25,14 @@ namespace AnaliseRedacao.Infrastructure
 
         private static void AddOllama(IServiceCollection services, IConfiguration configuration)
         {
-            var baseUrl = configuration.GetValue<string>("Settings:Ollama:BaseUrl")!;
+            var settings = configuration.GetSection("Settings:Ollama").Get<OllamaSettings>()!;
+
+            services.AddSingleton(settings);
 
             services.AddHttpClient<IExtractTextFromPdfService, OllamaOCRService>(client =>
             {
-                client.BaseAddress = new Uri(baseUrl);
-                client.Timeout = TimeSpan.FromSeconds(30);
+                client.BaseAddress = new Uri(settings.BaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds);
             });
         }
     }

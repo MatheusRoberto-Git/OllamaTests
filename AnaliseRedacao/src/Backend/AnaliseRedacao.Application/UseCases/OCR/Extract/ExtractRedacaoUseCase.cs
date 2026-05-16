@@ -3,16 +3,19 @@ using AnaliseRedacao.Communication.Response;
 using AnaliseRedacao.Domain.Extensions;
 using AnaliseRedacao.Domain.Services.OCR;
 using AnaliseRedacao.Exception.ExceptionsBase;
+using FluentValidation;
 
 namespace AnaliseRedacao.Application.UseCases.OCR.Extract
 {
     public class ExtractRedacaoUseCase : IExtractRedacaoUseCase
     {
         private readonly IExtractTextFromPdfService _ocr;
+        private readonly IValidator<RequestExtractRedacaoFormData> _validator;
 
-        public ExtractRedacaoUseCase(IExtractTextFromPdfService ocr)
+        public ExtractRedacaoUseCase(IExtractTextFromPdfService ocr, IValidator<RequestExtractRedacaoFormData> validator)
         {
             _ocr = ocr;
+            _validator = validator;
         }
 
         public async Task<ResponseExtractedRedacaoJson> Execute(RequestExtractRedacaoFormData request)
@@ -28,9 +31,9 @@ namespace AnaliseRedacao.Application.UseCases.OCR.Extract
             };
         }
 
-        private static void Validate(RequestExtractRedacaoFormData request)
+        private void Validate(RequestExtractRedacaoFormData request)
         {
-            var result = new PDFValidator().Validate(request);
+            var result = _validator.Validate(request);
 
             if (result.IsValid.IsFalse())
             {
